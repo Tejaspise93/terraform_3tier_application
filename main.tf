@@ -48,6 +48,7 @@ module "database" {
   # will use secrets manager to securely manage sensitive data in production environment, 
   # for demonstration purposes we are defining a default value here, but in a real-world scenario,
   # you should remove the default value and provide it securely during deployment.
+  # change afterwards
   #-------------------- Sensitive Variables ------------------
   db_password = var.db_password
 
