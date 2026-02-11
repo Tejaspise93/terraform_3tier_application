@@ -9,6 +9,9 @@ output "app_ec2_sg_id" {
   value = aws_security_group.app_ec2_sg.id
 }
 
+output "internal_alb_sg_id" {
+  value = aws_security_group.internal_alb_sg.id
+}
 output "db_sg_id" {
   value = aws_security_group.db_sg.id
 }

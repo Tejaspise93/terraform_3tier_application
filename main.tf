@@ -29,12 +29,22 @@ module "web_asg" {
   instance_type     = var.instance_type
 }
 
+module "internal_alb" {
+  source             = "./project_modules/internal_alb"
+  vpc_id             = module.network.vpc_id
+  private_subnet_ids = module.network.app_private_subnet_ids
+  internal_alb_sg_id = module.sg.internal_alb_sg_id
+  internal_alb_name  = var.internal_alb_name
+}
+
+
 module "app_asg" {
   source = "./project_modules/app_asg"
 
-  private_subnet_ids = module.network.app_private_subnet_ids
-  app_sg_id          = module.sg.app_ec2_sg_id
-  instance_type      = var.instance_type
+  private_subnet_ids   = module.network.app_private_subnet_ids
+  app_sg_id            = module.sg.app_ec2_sg_id
+  instance_type        = var.instance_type
+  app_target_group_arn = module.internal_alb.app_target_group_arn
 }
 
 module "database" {

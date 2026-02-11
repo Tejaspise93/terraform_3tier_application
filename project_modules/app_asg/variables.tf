@@ -19,3 +19,7 @@ variable "key_name" {
   type    = string
   default = null
 }
+
+variable "app_target_group_arn" {
+  type = string
+}

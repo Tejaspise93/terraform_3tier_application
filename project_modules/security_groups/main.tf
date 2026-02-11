@@ -9,6 +9,8 @@
       #   ↓ (80)
       # Web EC2
       #   ↓ (8080)
+      # Internal ALB
+      #   ↓ (8080)
       # App EC2
       #   ↓ (5432)
       # Postgres DB
@@ -27,6 +29,13 @@ resource "aws_security_group" "web_ec2_sg" {
   vpc_id = var.vpc_id
 
   tags = { Name = "web-ec2-sg" }
+}
+
+resource "aws_security_group" "internal_alb_sg" {
+  name   = "internal-alb-sg"
+  vpc_id = var.vpc_id
+
+  tags = { Name = "internal-alb-sg" }
 }
 
 resource "aws_security_group" "app_ec2_sg" {
@@ -101,9 +110,30 @@ resource "aws_security_group_rule" "web_all_out" {
   from_port                = var.app_port
   to_port                  = var.app_port
   protocol                 = "tcp"
-  source_security_group_id = aws_security_group.app_ec2_sg.id
+  source_security_group_id = aws_security_group.internal_alb_sg.id
 }
 
+#----------------------------------------------
+# Security Group Rules - Internal ALB
+#----------------------------------------------
+
+resource "aws_security_group_rule" "internal_alb_ingress" {
+  type                     = "ingress"
+  from_port                = 8080
+  to_port                  = 8080
+  protocol                 = "tcp"
+  security_group_id        = aws_security_group.internal_alb_sg.id
+  source_security_group_id = aws_security_group.web_ec2_sg.id
+}
+
+resource "aws_security_group_rule" "internal_alb_egress" {
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  security_group_id = aws_security_group.internal_alb_sg.id
+  cidr_blocks       = ["0.0.0.0/0"]
+}
 
 #----------------------------------------------
 # Security Group Rules - Application Servers
@@ -111,7 +141,7 @@ resource "aws_security_group_rule" "web_all_out" {
 resource "aws_security_group_rule" "app_from_web" {
   type                     = "ingress"
   security_group_id        = aws_security_group.app_ec2_sg.id
-  source_security_group_id = aws_security_group.web_ec2_sg.id
+  source_security_group_id = aws_security_group.internal_alb_sg.id
 
   from_port = var.app_port
   to_port   = var.app_port

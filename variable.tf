@@ -34,6 +34,12 @@ variable "alb_name" {
   default     = "three-web-alb-internet-facing"
 }
 
+variable "internal_alb_name" {
+  description = "name of internal alb"
+  type        = string
+  default     = "three-web-alb-internal"
+}
+
 variable "instance_type" {
   description = "instance type for the ec2 instances"
   type        = string

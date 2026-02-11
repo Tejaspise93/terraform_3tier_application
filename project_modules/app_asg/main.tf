@@ -19,16 +19,16 @@ data "aws_ami" "amazon_linux" {
 #  Launch Template for App ASG
 #----------------------------------------------
 resource "aws_launch_template" "app_lt" {
-  name_prefix   = "app-lt-"
+  name_prefix = "app-lt-"
   # image_id      = data.aws_ami.amazon_linux.id
-  image_id      = "ami-00b9840037f2380a4" # hardcoded for testing, replace with data source in production 
-                                          # amzon linux 2 doesn't work properly so hardcoding the image id for amazon linux 2023 which works fine
+  image_id = "ami-00b9840037f2380a4" # hardcoded for testing, replace with data source in production 
+  # amzon linux 2 doesn't work properly so hardcoding the image id for amazon linux 2023 which works fine
   instance_type = var.instance_type
   key_name      = var.key_name
 
   vpc_security_group_ids = [var.app_sg_id]
 
-user_data = base64encode(<<-EOF
+  user_data = base64encode(<<-EOF
 #!/bin/bash
 sudo yum update -y
 
@@ -46,7 +46,7 @@ echo "Hello from App Tier on port 8080" | sudo tee /opt/app/index.html
 cd /opt/app
 sudo nohup python3 -m http.server 8080 > /var/log/app.log 2>&1 &
 EOF
-)
+  )
 
 
   tag_specifications {
@@ -63,11 +63,15 @@ EOF
 #----------------------------------------------
 
 resource "aws_autoscaling_group" "app_asg" {
-  name                = "app-asg"
-  desired_capacity    = 2
-  min_size            = 2
-  max_size            = 4
-  vpc_zone_identifier = var.private_subnet_ids
+  name                      = "app-asg"
+  desired_capacity          = 2
+  min_size                  = 2
+  max_size                  = 4
+  vpc_zone_identifier       = var.private_subnet_ids
+  target_group_arns         = [var.app_target_group_arn]
+  health_check_type         = "ELB"
+  health_check_grace_period = 300
+
 
   launch_template {
     id      = aws_launch_template.app_lt.id
