@@ -9,10 +9,11 @@ This project provisions a **production-style 3-tier architecture on AWS** using 
 **Traffic Flow:**
 ```
 User
- → Application Load Balancer (Public)
- → Web Tier (EC2 Auto Scaling Group)
- → App Tier (EC2 Auto Scaling Group – Private)
- → PostgreSQL RDS (Private)
+ → Public Application Load Balancer (Internet-facing)
+ → Web Tier (EC2 Auto Scaling Group – Public Subnets)
+ → Internal Application Load Balancer (Private)
+ → App Tier (EC2 Auto Scaling Group – Private Subnets)
+ → PostgreSQL RDS (Private Subnets)
 ```
 
 Each tier is isolated using **separate subnets and security groups**, following **least-privilege networking**.
@@ -33,14 +34,24 @@ Each tier is isolated using **separate subnets and security groups**, following 
 ### 2. Security Groups
 - **ALB SG** – Allows HTTP/HTTPS from the internet
 - **Web EC2 SG** – Allows traffic only from ALB
-- **App EC2 SG** – Allows traffic only from Web tier (port 8080)
+- **Internal ALB SG** - Allows traffic only from Web tier (port 8080)
+- **App EC2 SG** – Allows traffic only from Internal ALB
 - **DB SG** – Allows PostgreSQL access only from App tier (port 5432)
 
-### 3. Load Balancer
-- Application Load Balancer (Internet-facing)
+### 3. Load Balancers
+- Public Application Load Balancer
+
+- Internet-facing
 - Listener on port 80
 - Target group for Web tier
 - Health checks enabled
+
+- Internal Application Load Balancer
+
+- Internal (private subnets only)
+- Listener on port 8080
+- Target group for App tier
+- Not publicly accessible
 
 ### 4. Web Tier
 - EC2 Auto Scaling Group
@@ -76,6 +87,7 @@ Each tier is isolated using **separate subnets and security groups**, following 
 │   ├── network/
 │   ├── security-groups/
 │   ├── alb/
+│   ├── internal-alb/
 │   ├── web-asg/
 │   ├── app-asg/
 │   └── database/
@@ -96,36 +108,6 @@ After apply completes, wait **2–3 minutes** for Auto Scaling Groups and health
 
 ---
 
-## ✅ How to Verify It Works
-
-### 1. ALB Check
-- Open the **ALB DNS name** in a browser
-- Expected output:
-  ```
-  Web Tier is UP
-  ```
-
-### 2. Target Group Health
-- All Web EC2 instances should be **Healthy**
-
-### 3. Web → App Connectivity
-From Web EC2 (via SSM or temporary SSH):
-```bash
-curl http://<app-private-ip>:8080
-```
-
-Expected response:
-```
-Hello from App Tier on port 8080
-```
-
-### 4. App → DB Connectivity
-From App EC2:
-```bash
-psql -h <db-endpoint> -U postgres -d appdb
-```
-
----
 
 ## 🔐 Security Notes
 
