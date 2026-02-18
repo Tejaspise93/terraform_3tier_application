@@ -13,7 +13,7 @@ data "aws_ami" "amazon_linux" {
 
   filter {
     name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+    values = ["al2023-ami-*-x86_64"]
   }
 }
 
@@ -21,26 +21,15 @@ data "aws_ami" "amazon_linux" {
 #  create a launch template for the web tier
 #-----------------------------------------------------------
 resource "aws_launch_template" "web_lt" {
-  name_prefix   = "web-lt-"
-  # image_id      = data.aws_ami.amazon_linux.id
-  image_id      = "ami-00b9840037f2380a4" # hardcoded for testing, replace with data source in production 
-                                          # amzon linux 2 doesn't work properly so hardcoding the image id for amazon linux 2023 which works fine
+  name_prefix = "web-lt-"
+  image_id      = data.aws_ami.amazon_linux.id
   instance_type = var.instance_type
   key_name      = var.key_name
 
   vpc_security_group_ids = [var.web_sg_id]
 
-user_data = base64encode(<<-EOF
-#!/bin/bash
-sudo yum update -y
-sudo yum install -y nginx
-sudo systemctl start nginx
-sudo systemctl enable nginx
-echo "<h1>Web Tier is UP</h1>" | sudo tee /usr/share/nginx/html/index.html
-EOF
-)
-
-
+  user_data = base64encode(file("${path.module}/scripts/web_user_data.sh"))
+  
   tag_specifications {
     resource_type = "instance"
 

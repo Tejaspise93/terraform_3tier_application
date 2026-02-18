@@ -17,13 +17,8 @@ db_private_subnet_cidr_list = [
   "10.10.6.0/24"
 ]
 
-availability_zone_list = [
-  "ap-south-2a",
-  "ap-south-2b"
-]
+alb_name          = "three-tier-web-alb-public"
+internal_alb_name = "three-tier-web-alb-internal"
 
-alb_name           = "three-tier-web-alb-public"
-internal_alb_name  = "three-tier-web-alb-internal"
-
-instance_type     = "t2.micro"
+instance_type     = "t3.micro"
 db_instance_class = "db.t3.micro"

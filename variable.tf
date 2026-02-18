@@ -3,23 +3,19 @@ variable "aws_region" {
 }
 
 variable "vpc_cidr" {
-  type    = string
+  type = string
 }
 
 variable "public_subnet_cidr_list" {
-  type    = list(string)
+  type = list(string)
 }
 
 variable "app_private_subnet_cidr_list" {
-  type    = list(string)
+  type = list(string)
 }
 
 variable "db_private_subnet_cidr_list" {
-  type    = list(string)
-}
-
-variable "availability_zone_list" {
-  type    = list(string)
+  type = list(string)
 }
 
 variable "alb_name" {
@@ -38,7 +34,7 @@ variable "instance_type" {
 }
 
 variable "db_instance_class" {
-  type    = string
+  type = string
 }
 
 #------------------- Sensitive Variables ------------------

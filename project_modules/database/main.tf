@@ -12,12 +12,20 @@ resource "aws_db_subnet_group" "db_subnet_group" {
 }
 
 #-------------------------------------------
+# Fetch latest PostgreSQL engine version
+#-------------------------------------------
+data "aws_rds_engine_version" "postgres" {
+  engine             = "postgres"
+  preferred_versions = ["17.6", "17.5", "17.4", "16.4", "16.3"]
+}
+
+#-------------------------------------------
 # RDS Instance for PostgreSQL
 #-------------------------------------------
 resource "aws_db_instance" "postgres" {
   identifier              = "postgres-db"
   engine                  = "postgres"
-  engine_version          = "17.6"
+  engine_version          = data.aws_rds_engine_version.postgres.version
   instance_class          = var.db_instance_class
   allocated_storage       = 20
   storage_type            = "gp2"

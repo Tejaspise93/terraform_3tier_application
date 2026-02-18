@@ -18,12 +18,6 @@ variable "db_private_subnet_cidr" {
     type = list(string)
 }
 
-variable "availability_zone" {
-  description = "availability zone for the subnets"
-  type = list(string)
-}
-
-
 
 # ----------------------------------------------------
 #  local clean up variables
@@ -33,21 +27,19 @@ locals {
   public_subnets = [
     for i in range(length(var.public_subnet_cidr)) : {
       cidr = var.public_subnet_cidr[i]
-      az   = var.availability_zone[i]
+      az   = data.aws_availability_zones.available.names[i]
     }
   ]
-
   app_private_subnets = [
     for i in range(length(var.app_private_subnet_cidr)) : {
       cidr = var.app_private_subnet_cidr[i]
-      az   = var.availability_zone[i]
+      az   = data.aws_availability_zones.available.names[i]
     }
   ]
-
   db_private_subnets = [
     for i in range(length(var.db_private_subnet_cidr)) : {
       cidr = var.db_private_subnet_cidr[i]
-      az   = var.availability_zone[i]
+      az   = data.aws_availability_zones.available.names[i]
     }
   ]
 }

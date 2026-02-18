@@ -106,11 +106,10 @@ resource "aws_security_group_rule" "web_http_in" {
 resource "aws_security_group_rule" "web_all_out" {
   type              = "egress"
   security_group_id = aws_security_group.web_ec2_sg.id
-
-  from_port                = var.app_port
-  to_port                  = var.app_port
-  protocol                 = "tcp"
-  source_security_group_id = aws_security_group.internal_alb_sg.id
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
 }
 
 #----------------------------------------------
@@ -152,24 +151,40 @@ resource "aws_security_group_rule" "app_to_db" {
   type                     = "egress"
   security_group_id        = aws_security_group.app_ec2_sg.id
   source_security_group_id = aws_security_group.db_sg.id
-
-  from_port = var.db_port
-  to_port   = var.db_port
-  protocol  = "tcp"
+  from_port                = var.db_port
+  to_port                  = var.db_port
+  protocol                 = "tcp"
 }
 
+resource "aws_security_group_rule" "app_all_out" {
+  type              = "egress"
+  security_group_id = aws_security_group.app_ec2_sg.id
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
+}
 
 #----------------------------------------------
 # Security Group Rules - Database Servers
 #----------------------------------------------
+
 resource "aws_security_group_rule" "db_from_app" {
   type                     = "ingress"
   security_group_id        = aws_security_group.db_sg.id
   source_security_group_id = aws_security_group.app_ec2_sg.id
+  from_port                = var.db_port
+  to_port                  = var.db_port
+  protocol                 = "tcp"
+}
 
-  from_port = var.db_port
-  to_port   = var.db_port
-  protocol  = "tcp"
+resource "aws_security_group_rule" "db_all_out" {
+  type              = "egress"
+  security_group_id = aws_security_group.db_sg.id
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
 }
 
 

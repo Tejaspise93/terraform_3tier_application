@@ -4,7 +4,6 @@ module "network" {
   public_subnet_cidr      = var.public_subnet_cidr_list
   app_private_subnet_cidr = var.app_private_subnet_cidr_list
   db_private_subnet_cidr  = var.db_private_subnet_cidr_list
-  availability_zone       = var.availability_zone_list
 }
 
 module "sg" {
