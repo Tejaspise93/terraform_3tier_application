@@ -1,6 +1,6 @@
 # AWS 3-Tier Architecture using Terraform
 
-This project provisions a **production-style 3-tier architecture on AWS** using **Terraform**.
+This project provisions a **production-style 3-tier architecture on AWS** using **Terraform**. Infrastructure is managed via a **Jenkins CI/CD pipeline** with options to apply or destroy.
 
 > ⚠️ **Note:** This project is currently configured for AWS Free Tier. Some settings like `multi_az`, `deletion_protection`, and instance types are set conservatively. See the Notes section for production recommendations.
 
@@ -70,8 +70,10 @@ Each tier is isolated using **separate subnets and security groups**, following 
 
 ```
 PROJECT/
+├── Jenkinsfile
 ├── .gitattributes
 ├── .gitignore
+├── .terraform.lock.hcl
 ├── main.tf
 ├── output.tf
 ├── provider.tf
@@ -118,11 +120,29 @@ PROJECT/
 ## 🚀 Deployment
 
 ### Prerequisites
-- Terraform >= 1.0
+- Terraform >= 1.0 installed on the Jenkins server
+- Jenkins server with AWS credentials configured
 - AWS CLI configured with appropriate credentials
 - An AWS account
 
-### Steps
+### Option 1 — Via Jenkins Pipeline (Recommended)
+
+The project includes a `Jenkinsfile` that provides a pipeline with two options:
+
+**Setup:**
+1. Add AWS credentials in Jenkins — `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` as secret text credentials
+2. Create a new Jenkins Pipeline job
+3. Set Definition to **Pipeline script from SCM**
+4. Set SCM to **Git** and provide your repository URL
+5. Set Script Path to `Jenkinsfile`
+6. Save and run **Build Now** once to let Jenkins read the Jenkinsfile
+7. From the second run onwards, use **Build with Parameters**
+
+**Running the pipeline:**
+- Select `apply` to provision infrastructure
+- Select `destroy` to tear down infrastructure
+
+### Option 2 — Via Terraform CLI
 
 ```bash
 terraform init
@@ -130,13 +150,6 @@ terraform plan
 terraform apply
 ```
 
-After apply completes, wait **5 minutes** for instances to boot and health checks to stabilize.
-
-To force instances to pick up launch template changes after an update:
-```bash
-aws autoscaling start-instance-refresh --auto-scaling-group-name web-asg --region <your-region>
-aws autoscaling start-instance-refresh --auto-scaling-group-name app-asg --region <your-region>
-```
 
 ### Cleanup
 
@@ -178,6 +191,7 @@ AWS Console → RDS → Databases → `postgres-db`:
 - All inter-tier communication uses SG-to-SG rules — no CIDR-based rules between tiers
 - Database has no public access
 - SSH is disabled on all instances by default
+- AWS credentials stored securely in Jenkins credential store — never hardcoded in code
 
 ---
 
@@ -204,3 +218,4 @@ To deploy in a different region, change only `aws_region` in `terraform.tfvars`.
 | `skip_final_snapshot` | `true` | `false` |
 | DB password | `terraform.tfvars` | AWS Secrets Manager |
 | SSH access | Disabled | Enable with bastion host if needed |
+| Terraform state | Local | S3 remote backend |
