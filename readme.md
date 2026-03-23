@@ -2,8 +2,6 @@
 
 This project provisions a production-style 3-tier architecture on AWS using Terraform. Infrastructure is managed via a Jenkins CI/CD pipeline with options to apply or destroy.
 
-> **Note:** This project is configured for AWS Free Tier. Settings like `multi_az`, `deletion_protection`, and instance types are set conservatively. See the Notes section for production recommendations.
-
 ---
 
 ## Architecture Overview
@@ -62,7 +60,6 @@ Each tier is isolated using separate subnets and security groups, following leas
 - Amazon RDS PostgreSQL in private subnets
 - Engine version fetched dynamically per region
 - Not publicly accessible
-- `db.t3.micro` instance class
 
 ---
 
@@ -181,3 +178,9 @@ To deploy in a different region, change only `aws_region` in `terraform.tfvars`.
 | DB password | `terraform.tfvars` | AWS Secrets Manager |
 | SSH access | Disabled | Enable with bastion host if needed |
 | Terraform state | Local | S3 remote backend |
+
+---
+
+## Free Tier Notice
+
+This project is tailored for the AWS Free Tier. Instance types, database class, and several reliability settings are intentionally kept minimal. Refer to the Notes table above for recommended values before deploying to a production environment.
